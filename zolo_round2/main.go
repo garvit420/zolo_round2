@@ -3,11 +3,12 @@ package main
 import (
 	"net/http"
 	"time"
+
 	"github.com/gin-gonic/gin"
 )
 
-// album represents data about a record album.
-type book struct {
+// Book represents data about a book.
+type Book struct {
 	ID        string    `json:"book_id"`
 	Name      string    `json:"Name"`
 	Author    string    `json:"Author"`
@@ -16,48 +17,57 @@ type book struct {
 	Genre     []string  `json:"genre"`
 }
 
-// albums slice to seed record album data.
-var books = []book{
-	{ID: "1", Name: "Blue Train", Author: "John Coltrane", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 27, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
-	{ID: "2", Name: "Jeru", Author: "Gerry Mulligan", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 30, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
-	{ID: "3", Name: "Sarah Vaughan and Clifford Brown", Author: "Sarah Vaughan", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 31, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
-}
-
+// Borrow represents data about borrowing a book.
 type Borrow struct {
-    ID              string    `json:"borrow_id"`
-    BookID          string    `json:"book_id"`
-    BorrowStartTime time.Time `json:"borrow_Start_Time"`
-    BorrowEndTime   time.Time `json:"borrow_End_Time"`
+	ID              string    `json:"borrow_id"`
+	BookID          string    `json:"book_id"`
+	BorrowStartTime time.Time `json:"borrow_Start_Time"`
+	BorrowEndTime   time.Time `json:"borrow_End_Time"`
 	Returned        bool      `json:"returned"`
-    // Other borrow-related fields
 }
 
-var borrows = []Borrow{
-    {ID: "1", BookID: "1", BorrowStartTime: time.Now(), BorrowEndTime: time.Date(2023, time.December, 27, 23, 59, 0, 0, time.UTC), Returned: false},
-    // Add more borrow records as needed
-}
+var (
+	books   = []Book{
+		{ID: "1", Name: "Blue Train", Author: "John Coltrane", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 27, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
+		{ID: "2", Name: "Jeru", Author: "Gerry Mulligan", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 30, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
+		{ID: "3", Name: "Sarah Vaughan and Clifford Brown", Author: "Sarah Vaughan", PostedBy: "garvit", TillDate: time.Date(2023, time.December, 31, 23, 59, 0, 0, time.UTC), Genre: []string{"Fiction", "Thriller"}},
+	}
+	borrows = []Borrow{
+		{ID: "1", BookID: "1", BorrowStartTime: time.Now(), BorrowEndTime: time.Date(2023, time.December, 27, 23, 59, 0, 0, time.UTC), Returned: false},
+	}
+)
 
 func main() {
 	router := gin.Default()
+
+	// Define API endpoints
+
+	// GET request to fetch all books
 	router.GET("/api/v1/booky", getBooks)
-	router.POST("/api/v1/booky/:book_id/borrow", postBorrow)
+
+	// POST request to add a new book
 	router.POST("/api/v1/booky", postBooks)
+
+	// POST request to borrow a book
+	router.POST("/api/v1/booky/:book_id/borrow", postBorrow)
+
+	// PUT request to return a borrowed book
 	router.PUT("/api/v1/booky/:book_id/borrow/:borrow_id", putReturnBorrow)
 
-	router.Run("localhost:8081")
+	// Start the server
+	router.Run("localhost:8080")
 }
 
-// getAlbums responds with the list of all albums as JSON.
+// getBooks responds with the list of all books as JSON.
 func getBooks(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, books)
 }
 
-// postAlbums adds an album from JSON received in the request body.
+// postBooks adds a book from JSON received in the request body.
 func postBooks(c *gin.Context) {
-	var newBook book
+	var newBook Book
 
 	// Call BindJSON to bind the received JSON to
-	// newBook.
 	if err := c.BindJSON(&newBook); err != nil {
 		return
 	}
@@ -111,7 +121,7 @@ func postBorrow(c *gin.Context) {
 
             // Add the borrow
             borrows = append(borrows, Borrow{
-                ID:              newBorrow.ID, // Generate a unique borrow ID
+                ID:              newBorrow.ID,
                 BookID:          bookID,
                 BorrowStartTime: newBorrow.BorrowStartTime,
                 BorrowEndTime:   newBorrow.BorrowEndTime,
